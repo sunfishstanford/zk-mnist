@@ -9,6 +9,7 @@ import { generateProof, buildContractCallArgs } from "./snarkUtils";
 import path from 'path';
 import './App.css';
 // import Token from './artifacts/contracts/Token.sol/Token.json'
+import '../tests/testprover.js';
 
 const verifierAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
 
@@ -21,6 +22,7 @@ function App() {
     const size=28;
     const [grid, setGrid] = useState(Array(size).fill(null).map(_ => Array(size).fill(0)));
 
+    doProve('hello from app.js');
     
 
     async function requestAccount() {

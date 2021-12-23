@@ -19,7 +19,8 @@
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "noFallthroughCasesInSwitch": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "types": ["node"]
   },
   "exclude": [
     "node_modules"
