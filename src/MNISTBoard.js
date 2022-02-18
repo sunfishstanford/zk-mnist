@@ -3,9 +3,9 @@ import { matmul, matPlusVec, zeros, vecPlusVec, matByVec, argMax } from './matut
 import { INPUT } from './const';
 import './MNISTBoard.css';
 
-function GridSquare(row, col, handleReset, mouseDown, onChange) {
+function GridSquare(props) {
     const [on, setOn] = useState(false);
-    handleReset(() => {reset(0)});
+    props.handleReset(() => {reset(0)});
 
     function reset(val) {
         setOn(val);
@@ -13,10 +13,11 @@ function GridSquare(row, col, handleReset, mouseDown, onChange) {
     }
 
     function handleChange() {
-        if (mouseDown) {
+        if (props.mouseDown) {
             setOn(true);
             // grid[row][col] = 1;
-            onChange(row,col)
+            console.log('gridsquare ', props.row, props.col)
+            props.onChange(props.row,props.col)
         }
     }
 
@@ -68,7 +69,10 @@ export default function MNISTBoard(props) {
         for (var col=0; col < size; col++) {
             rowCols.push([row, col]);
             mygrid.push(
-                <div>{GridSquare(row, col, bindResetHandler, mouseDown, onSqChange)}</div>
+                <GridSquare row={row} col={col} 
+                handleReset={bindResetHandler} 
+                mouseDown={mouseDown} 
+                onChange={onSqChange} />
             );
         }   
         return (

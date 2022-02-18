@@ -11,8 +11,7 @@ import './App.css';
 // import Token from './artifacts/contracts/Token.sol/Token.json'
 import { Tensor, InferenceSession } from "onnxruntime-web";
 
-
-
+var image=[]; // the image array will eventually be a flattened version of grid (the 2-dim array)
 const verifierAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
 
 function App() {
@@ -23,7 +22,6 @@ function App() {
     const [isVerified, setIsVerified] = useState(false);
     const size=28;
     const [grid, setGrid] = useState(Array(size).fill(null).map(_ => Array(size).fill(0))); // initialize to a 28x28 array of 0's
-    const [image, setImage] = useState([]); // the image array will eventually be a flattened version of grid (the 2-dim array)
     const strokeSize=3;
     var stroke = [];
     stroke.push([0.2,0.5,0.2]);
@@ -85,14 +83,14 @@ function App() {
     }
 
     function handleChangeData(myrow,mycol){
-        var newArray = [];
+      var newArray = [];
         for (var i = 0; i < grid.length; i++)
             newArray[i] = grid[i].slice();
         newArray[myrow][mycol]=1;
         setGrid(newArray);
 
         // transpose the array, because the drawing is transposed
-        var newT = [];
+        const newT = [];
         for(var i=0; i<grid.length; i++)
           newT.push([]);
         for(var i=0; i<grid.length; i++){
@@ -100,7 +98,7 @@ function App() {
             newT[j].push(newArray[i][j]);
         }
         
-        setImage(newT.flat());
+        image = newT.flat();
     }
 
 
