@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import './App.css'
-import MNISTBoard from './MNISTBoard.js';
 import MNISTDigits from './MNISTDigits.js';
 
 import { ethers } from 'ethers'
@@ -16,6 +15,7 @@ import {digSize} from './MNISTDigits.js';
 var image=[]; // the image array will eventually be a flattened version of grid (the 2-dim array)
 const verifierAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
 var selectedImgUrl="";
+const selectedDig=11
 
 function App() {
     const [quantizedEmbedding, setQuantizedEmbedding] = useState([])
@@ -24,60 +24,48 @@ function App() {
     const [isVerified, setIsVerified] = useState(false);
     const size=28;
     const [grid, setGrid] = useState(Array(size).fill(null).map(_ => Array(size).fill(0))); // initialize to a 28x28 array of 0's
-    const mydigit=17   
 
     async function requestAccount() {
     await window.ethereum.request({ method: 'eth_requestAccounts' });
     }
 
     async function doProof() {
-      selectedImgUrl = convImgUrl(image);
-      const session = await InferenceSession.create(
-        "http://localhost:3000/trimmed_convet.onnx",
-        {
-          executionProviders: ["wasm"],
-        }
-      );
-      const data = Float32Array.from(image) 
-      const tensor = new Tensor('float32', data, [1, 1, 28, 28]);
-      const feeds = { input: tensor};
-      const results = await session.run(feeds);
-      const embeddingResult = results.output.data;
-      var tempQuantizedEmbedding = new Array(50)
-      for (var i = 0; i < 50; i++)
-        tempQuantizedEmbedding[i] = parseInt((embeddingResult[i]*1000).toFixed()) + 10000;
-
-      if (typeof window.ethereum !== 'undefined') {
-            const { proof, publicSignals } = await generateProof(tempQuantizedEmbedding)
-            setPublicSignal(publicSignals);
-            setProof(proof);
+      var stats = []
+      for(let i=0; i<10; i++){
+        stats.push([])
       }
-      else {
-        console.log(window.ethereum)
-      }
+      // for(var ndig=0; ndig<50; ndig++){
+      //   const session = await InferenceSession.create(
+      //     "http://localhost:3000/trimmed_convet.onnx",
+      //     {
+      //       executionProviders: ["wasm"],
+      //     }
+      //   );
+      //   var image = DIGIT.weight[ndig].slice(1);
+      //   const data = Float32Array.from(image) 
+      //   const tensor = new Tensor('float32', data, [1, 1, 28, 28]);
+      //   const feeds = { input: tensor};
+      //   const results = await session.run(feeds);
+      //   const embeddingResult = results.output.data;
+      //   var tempQuantizedEmbedding = new Array(50)
+      //   for (var i = 0; i < 50; i++)
+      //     tempQuantizedEmbedding[i] = parseInt((embeddingResult[i]*1000).toFixed()) + 10000;
+  
+      //   if (typeof window.ethereum !== 'undefined') {
+      //         const { proof, publicSignals } = await generateProof(tempQuantizedEmbedding)
+      //         setPublicSignal(publicSignals);
+      //         setProof(proof);
+      //         stats[DIGIT.weight[ndig][0]].push(publicSignals)
+      //         // console.log(DIGIT.weight[ndig][0] + ' is classified as ',publicSignals)
+      //   }
+      //   else {
+      //     console.log(window.ethereum)
+      //   }
+      // }
+      // console.log(stats)
     }
 
-    async function verifyProof() {
-        if (typeof window.ethereum !== 'undefined') {
-        await requestAccount();
-        const provider = new ethers.providers.Web3Provider(window.ethereum)
-        const verifier = new ethers.Contract(verifierAddress, Verifier.abi, provider)
-        const callArgs = await buildContractCallArgs(proof, publicSignal)
-        try {
-            const result = await verifier.verifyProof(...callArgs)
-            console.log(result)
-            setIsVerified(result)
-        } catch(err) {
-            console.log(err)
-        }
-        }    
-    }
 
-    function resetImage() {
-      var newArray = Array(size).fill(null).map(_ => Array(size).fill(0));
-      setGrid(newArray);
-      image = newArray.flat();
-    }
 
     function handleSetSquare(myrow,mycol){
         var newArray = [];
@@ -92,8 +80,7 @@ function App() {
 
     function handleSelectDigit(r,c){
       var mydigit = r*digSize+c;      
-      image = DIGIT.weight[mydigit];
-      console.log(r,c)
+      image = DIGIT.weight[selectedDig].slice(1);
       doProof();
     }
 
@@ -127,26 +114,12 @@ function App() {
         Select an image to submit to ML classifier and ZK Prover
         {/* Draw a digit or select an image to submit to ML classifier and ZK Prover */}
       </div>
-      {/* <div className="vspace" />
-      <MNISTBoard grid={grid} onChange={(r,c) => handleSetSquare(r,c)}  />
-
-        <div className='bigText'>
-          <button className="button" onClick={resetImage} >
-            Reset image
-          </button>
-        </div>
-        <div className='bigText'>
-          <button className="button" onClick={doProof}>
-            Capture image, compute embeddings, and generate zk proof
-          </button>
-        </div> */}
         <div className="vspace" />
 
       <MNISTDigits onClick={(r,c) => handleSelectDigit(r,c)} />
  
       <h1>Output</h1>
       <div className="singleLine">
-        <img className = "digImg" src={selectedImgUrl} alt="" />
         <div className = "recDig">
           Recognized Digit: {publicSignal}
         </div>
@@ -154,15 +127,6 @@ function App() {
       <h2> Proof:</h2> 
         <h4 className="proof">{JSON.stringify(proof)}</h4>
 
-      <div className="vspace" />
-
-      <div className='centerObject'>
-        <button className='button'
-          onClick={verifyProof}>Verify Proof</button>
-      </div>
-
-      <h2>Verified by on-chain smart contract: {JSON.stringify(isVerified)}</h2>
-      <p>Note: the verifier requires being connected to the chain</p>
       
     </div>
   );
