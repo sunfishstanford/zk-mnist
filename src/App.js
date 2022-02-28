@@ -9,7 +9,7 @@ import { generateProof, buildContractCallArgs } from "./snarkUtils";
 import path from 'path';
 import './App.css';
 import { Tensor, InferenceSession } from "onnxruntime-web";
-import {DIGIT} from './mnistpics';
+import {DIGIT} from './mnistpicswithy';
 import {digSize} from './MNISTDigits.js';
 
 var image=[]; // the image array will eventually be a flattened version of grid (the 2-dim array)
@@ -28,41 +28,64 @@ function App() {
     async function requestAccount() {
     await window.ethereum.request({ method: 'eth_requestAccounts' });
     }
+    function indexOfMax(arr) {
+      if (arr.length === 0) {
+          return -1;
+      }
+  
+      var max = arr[0];
+      var maxIndex = 0;
+  
+      for (var i = 1; i < arr.length; i++) {
+          if (arr[i] > max) {
+              maxIndex = i;
+              max = arr[i];
+          }
+      }
+  
+      return maxIndex;
+    }
 
     async function doProof() {
       var stats = []
       for(let i=0; i<10; i++){
         stats.push([])
       }
-      // for(var ndig=0; ndig<50; ndig++){
-      //   const session = await InferenceSession.create(
-      //     "http://localhost:3000/trimmed_convet.onnx",
-      //     {
-      //       executionProviders: ["wasm"],
-      //     }
-      //   );
-      //   var image = DIGIT.weight[ndig].slice(1);
-      //   const data = Float32Array.from(image) 
-      //   const tensor = new Tensor('float32', data, [1, 1, 28, 28]);
-      //   const feeds = { input: tensor};
-      //   const results = await session.run(feeds);
-      //   const embeddingResult = results.output.data;
+      for(var ndig=0; ndig<50; ndig++){
+        const session = await InferenceSession.create(
+          "http://localhost:3000/mnist-7.onnx",
+          // "http://localhost:3000/trimmed_convet.onnx",
+          {
+            executionProviders: ["wasm"],
+          }
+        );
+        var image = DIGIT.weight[ndig].slice(1);
+        const tensor = new Tensor('float32', Float32Array.from(image), [1, 1, 28, 28]);
+        const feeds: Record<string, Tensor> = {};
+        feeds[session.inputNames[0]] = tensor;
+        // const feeds = { Input3: tensor};
+        const results = await session.run(feeds);
+        // console.log(results)
+        var output = results.Plus214_Output_0['data']
+        var winner = indexOfMax(output)
+        // const embeddingResult = results.output.data;
+        // console.log(embeddingResult)
       //   var tempQuantizedEmbedding = new Array(50)
       //   for (var i = 0; i < 50; i++)
       //     tempQuantizedEmbedding[i] = parseInt((embeddingResult[i]*1000).toFixed()) + 10000;
   
-      //   if (typeof window.ethereum !== 'undefined') {
-      //         const { proof, publicSignals } = await generateProof(tempQuantizedEmbedding)
-      //         setPublicSignal(publicSignals);
-      //         setProof(proof);
-      //         stats[DIGIT.weight[ndig][0]].push(publicSignals)
-      //         // console.log(DIGIT.weight[ndig][0] + ' is classified as ',publicSignals)
-      //   }
-      //   else {
-      //     console.log(window.ethereum)
-      //   }
-      // }
-      // console.log(stats)
+        if (typeof window.ethereum !== 'undefined') {
+              // const { proof, publicSignals } = await generateProof(tempQuantizedEmbedding)
+              // setPublicSignal(publicSignals);
+              // setProof(proof);
+              stats[DIGIT.weight[ndig][0]].push(winner)
+              // console.log(DIGIT.weight[ndig][0] + ' is classified as ',publicSignals)
+        }
+        else {
+          console.log(window.ethereum)
+        }
+      }
+      console.log(stats)
     }
 
 
