@@ -17,6 +17,7 @@ import {digSize} from './MNISTDigits.js';
 
 var image=[]; // the image array will eventually be a flattened version of grid (the 2-dim array)
 const verifierAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+const MODELHASH = "19911005201245416128760814414810295592773752053632512869708927789406300783533";
 var selectedImgUrl="";
 
 function App() {
@@ -107,7 +108,7 @@ function App() {
       // console.log('tempquantizedembeddin ',tempQuantizedEmbedding)
 
       if (typeof window.ethereum !== 'undefined') {
-            const { proof, publicSignals } = await generateProof(tempQuantizedEmbedding)
+            const { proof, publicSignals } = await generateProof(tempQuantizedEmbedding, MODELHASH)
             setPublicSignal(publicSignals);
             // setPublicSignal(winner.toString());
             setProof(proof);
@@ -221,6 +222,7 @@ function App() {
 
       <h2>Verified by on-chain smart contract: {JSON.stringify(isVerified)}</h2>
       <p>Note: the verifier requires being connected to the chain</p>
+      <p>Commited model hash: {MODELHASH}</p>
       
     </div>
   );

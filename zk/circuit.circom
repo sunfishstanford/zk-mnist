@@ -1,7 +1,8 @@
-pragma circom 2.0.2;
+pragma circom 2.0.1;
 
 include "../node_modules/circomlib/circuits/comparators.circom";
 include "../node_modules/circomlib/circuits/switcher.circom";
+include "../node_modules/circomlib/circuits/mimcsponge.circom";
 
 template ArgMax (n) {
     signal input in[n];
@@ -26,7 +27,7 @@ template ArgMax (n) {
         switchers[i+1].sel <== gts[i].out;
         switchers[i+1].L <== maxs[i];
         switchers[i+1].R <== in[i];
-        
+
         aswitchers[i+1].sel <== gts[i].out;
         aswitchers[i+1].L <== amaxs[i];
         aswitchers[i+1].R <== i;
@@ -42,11 +43,12 @@ template ArgMax (n) {
 // B is final bias, length 10 vector
 template DigitReader (n) {
     signal input image[n]; // must be non-negative
+    signal input hash;
     signal output digit;
     var ndigits = 10;
 
 // copy the values of A and B from the snarklayer.tsx file
-    var A[ndigits][n] = 
+    var A[ndigits][n] =
     [
 [12,-124,-189,156,127,-10,-65,-82,0,175,-192,-186,130,99,51,-38,148,-333,70,-3,-158,-69,71,-89,88,-143,-55,190,26,34,220,-224,-107,-85,-67,-101,-82,-145,33,26,115,-20,80,-72,-151,106,38,-61,-46,128,-14,-36,78,-261,-148,168,134,77,33,267,230,-108,31,-183,-7,-76,17,-5,57,-177,132,34,33,155,62,204,-48,-198,-110,-5,130,-210,17,-79],
 [93,-202,-154,-73,-257,134,-45,-11,196,81,40,-10,139,-27,-61,0,-41,209,-144,-2,129,-131,-75,-202,76,-21,9,-28,-9,-165,-224,155,-25,-29,95,144,-129,-171,-250,67,46,25,-285,-93,71,108,55,67,-98,-47,1,-53,244,131,-172,37,0,-249,-1,12,-21,256,87,204,-104,6,-41,-112,-16,173,-25,183,-47,-200,-189,23,-117,-5,90,-7,-18,223,59,-34],
@@ -60,6 +62,17 @@ template DigitReader (n) {
 [56,0,162,133,57,-146,-17,-144,1,101,149,-32,-114,37,151,75,51,0,-92,-122,-9,-252,91,31,-49,-51,-206,75,82,128,-110,-32,126,-182,-267,159,-172,235,-172,-60,-141,59,64,-22,-31,-26,-255,-81,81,-72,-82,-54,-212,-91,-34,-246,-167,223,-120,29,-236,25,-150,99,68,-200,14,135,177,-25,-177,40,60,99,161,46,-112,221,85,13,-252,13,14,106]];
 
     var B[ndigits] = [ -57068,33988,72676,115488,-84896,-15568,-94943,-115469,103303,-90709];
+
+    component hasher = MiMCSponge(850, 10, 1);
+    hasher.k <== 0;
+    // hardcoded bounds since A, B are constant vars
+    for (var i = 0; i < 10; i++) {
+        for (var j = 0; j < 84; j++) {
+            hasher.ins[i * n + j] <== A[i][j];
+        }
+        hasher.ins[840 + i] <== B[i];
+    }
+    hash === hasher.outs[0];
 
     signal s[ndigits][n+1];
     component am = ArgMax(ndigits);
