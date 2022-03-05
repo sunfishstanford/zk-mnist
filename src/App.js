@@ -16,7 +16,9 @@ import {SNARKLAYER} from './snarklayer';
 import {digSize} from './MNISTDigits.js';
 
 var image=[]; // the image array will eventually be a flattened version of grid (the 2-dim array)
-const verifierAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+const verifierAddress = "0x68ddc06fc8b5e611c78fc91299db367ea42776af"
+// const verifierAddress = "0xf809765c7fAF2d8C1963aD159A5178950B2DC00D"
+// const verifierAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
 var selectedImgUrl="";
 
 function App() {
