@@ -2,6 +2,7 @@ require("@nomiclabs/hardhat-waffle");
 require("hardhat-typechain");
 
 require("hardhat-circom");
+require('dotenv').config();
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -30,10 +31,8 @@ module.exports = {
       chainId: 1337,
     },
     ropsten: {
-      url: "https://ropsten.infura.io/v3/4bff787c9b4f4f10af4c3250e537f2cd",
-
-      
-      //  accounts: [process.env.a2key]
+      url: "https://ropsten.infura.io/v3/"+process.env.ROPSTEN_PROJECTID,
+      accounts: [process.env.a2key]
     },
     // rinkeby: {
     //   url: "https://rinkeby.infura.io/v3/projectid",
